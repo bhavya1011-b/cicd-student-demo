@@ -1,0 +1,33 @@
+name: Python CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Fetch your repository code into the runner
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    # 2. Setup Python environment
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    # 3. Install pytest test runner
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+
+    # 4. Run your test suite
+    - name: Run unit tests
+      run: |
+        pytest
