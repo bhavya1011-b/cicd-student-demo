@@ -1,5 +1,5 @@
 def calculate_result(mark):
-    if mark >= 40:
+    if mark >= 50:
         return "Pass"
     else:
         return "Fail"
