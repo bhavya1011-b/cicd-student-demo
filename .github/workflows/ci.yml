@@ -1,33 +1,66 @@
-name: Python CI
+name: Student Python CI/CD
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [main]
+
+# Grant permissions needed for GitHub Pages deployment
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
+  # 1. Continuous Integration (CI) Stage
   test:
     runs-on: ubuntu-latest
+    steps:
+      - name: Download source code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Run automated tests
+        run: pytest -v
+
+  # 2. Continuous Deployment (CD) Stage
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: test  # CD only runs if CI tests pass!
 
     steps:
-    # 1. Fetch your repository code into the runner
-    - name: Check out code
-      uses: actions/checkout@v4
+      - name: Download source code
+        uses: actions/checkout@v4
 
-    # 2. Setup Python environment
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
 
-    # 3. Install pytest test runner
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest
+      - name: Generate static site
+        run: python generate_site.py
 
-    # 4. Run your test suite
-    - name: Run unit tests
-      run: |
-        pytest
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './public'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
